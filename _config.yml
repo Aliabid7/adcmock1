@@ -1,0 +1,4 @@
+# Minimal configuration to force Jekyll to run without a default theme.
+# We explicitly set a remote theme to null to prevent the SCSS error.
+remote_theme: null
+title: ADC Mock Exam Simulation
