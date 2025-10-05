@@ -1,3 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADC Style Mock Exam</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .exam-container {
+            width: 90%;
+            max-width: 1200px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* --- Header Styling (Top Bar) --- */
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #004d99; /* ADC-like navy blue */
+            color: white;
+            border-bottom: 3px solid #ffcc00; /* Gold accent */
+        }
+
+        .exam-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .timer-section {
+            font-size: 1.2em;
+        }
+
+        .timer-display {
+            font-weight: bold;
+            color: #ffcc00;
+            margin-left: 10px;
+        }
+
+        /* --- Main Content Layout --- */
+        .exam-main {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .question-panel {
+            flex-grow: 1;
+            padding: 30px;
+            border-right: 1px solid #ddd;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-label {
+            display: block;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: #f5f5f5;
+        }
+
+        .option-label input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+
+
+        /* --- Status Panel (Right Sidebar) --- */
+        .status-panel {
+            width: 250px;
+            padding: 20px;
+            background-color: #f7f7f7;
+            text-align: center;
+        }
+
+        .status-panel h4 {
+            color: #004d99;
+            margin-top: 0;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .q-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* ADC-style color coding for question status */
+        .answered { background-color: #4CAF50; /* Green */ }
+        .flagged { background-color: #FFCC00; /* Gold/Yellow */ }
+        .unanswered { background-color: #AAAAAA; /* Grey */ }
+        .current { 
+            background-color: #007bff; /* Blue */ 
+            border: 3px solid red; /* Highlight current question */
+            transform: scale(1.05);
+        }
+
+        .finish-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #d9534f; /* Red for final action */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+
+        /* --- Footer Styling (Bottom Bar) --- */
+        .exam-footer {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #e9e9e9;
+            border-top: 1px solid #ddd;
+        }
+
+        .nav-btn, .flag-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .nav-btn.next {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-btn.prev {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .flag-btn {
+            background-color: #f0ad4e;
+            color: #333;
+        }
+
+        /* Disabled button style */
+        .nav-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="exam-container">
+    
+    <header class="exam-header">
+        <div class="exam-info">
+            <span class="exam-title">ADC Simulated Test - Block A</span>
+            <span class="question-number">Question **1** of **3**</span>
+        </div>
+        <div class="timer-section">
+            <label for="time-remaining">Time Remaining:</label>
+            <span id="time-remaining" class="timer-display">**03:00:00**</span>
+        </div>
+    </header>
+    
+    <main class="exam-main">
+        
+        <div class="question-panel">
+            <p class="question-text">Loading question...</p>
+            <form class="options-form"></form>
+
+            <hr style="margin-top: 30px; border-top: 1px solid #ddd;">
+            <p style="font-size: 0.9em; color: #666;">
+                *Note: This is a simulation interface. Question content is for demonstration only.*
+            </p>
+        </div>
+        
+        <aside class="status-panel">
+            <h4>Question Navigation</h4>
+            <div class="question-grid">
+                <button class="q-btn current">1</button>
+                <button class="q-btn unanswered">2</button>
+                <button class="q-btn unanswered">3</button>
+            </div>
+            <button class="finish-btn">End Exam</button>
+        </aside>
+        
+    </main>
+    
+    <footer class="exam-footer">
+        <button class="nav-btn prev" disabled>← Previous</button>
+        <button class="flag-btn">🚩 Flag for Review</button>
+        <button class="nav-btn next">Next →</button>
+    </footer>
+    
+</div>
+
 <script>
     // --- 1. Question Data Array ---
     const quizQuestions = [
@@ -10,14 +250,13 @@
                 "C) Peripheral ossifying fibroma (Single Best Answer)",
                 "D) Recurrent aphthous stomatitis"
             ],
-            // In a real app, you'd track the correct answer here.
         },
         {
             id: 2,
             text: "Q2: Which of the following is the preferred local anaesthetic for a patient with a documented history of methemoglobinemia when extensive dental work is required?",
             options: [
                 "A) Prilocaine",
-                "B) Lidocaine",
+                "B) Lidocaine (Correct Choice)",
                 "C) Articaine",
                 "D) Benzocaine (Avoided in Methemoglobinemia)",
             ],
@@ -32,7 +271,6 @@
                 "D) Pulpotomy with formocresol",
             ],
         }
-        // Add more questions here to expand the mock test.
     ];
 
     let currentQuestionIndex = 0; // Starts at 0 for the first question
@@ -71,8 +309,7 @@
         document.querySelector('.nav-btn.prev').disabled = (index === 0);
         document.querySelector('.nav-btn.next').disabled = (index === totalQuestions - 1);
         
-        // Optional: Update the 'current' button status in the sidebar 
-        // (This would require more complex status panel logic, but is good practice)
+        // In a full app, you would also update the sidebar navigation buttons here
     }
 
     function handleNext() {
@@ -91,7 +328,7 @@
         }
     }
 
-    // --- 3. Timer Function (Keep this the same) ---
+    // --- 3. Timer Function ---
     function startTimer(duration, display) {
         let timer = duration, hours, minutes, seconds;
         
@@ -130,7 +367,15 @@
              alert(`Question ${currentQuestionIndex + 1} flagged for review!`);
         });
 
+        document.querySelector('.finish-btn').addEventListener('click', () => {
+             if (confirm("Are you sure you want to end the exam?")) {
+                alert("Exam submission logic would run here.");
+             }
+        });
+
         // Load the first question
         loadQuestion(currentQuestionIndex);
     };
 </script>
+</body>
+</html>
