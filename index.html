@@ -41,13 +41,15 @@
         .question-text { font-size: 1.2em; font-weight: 500; margin-bottom: 25px; line-height: 1.5; }
         .options-form { display: flex; flex-direction: column; }
         .option-label {
-            display: block;
+            display: flex;
+            align-items: center;
             padding: 15px;
             margin-bottom: 10px;
-            border: 1px solid #ccc;
+            border: 2px solid #ccc;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.2s;
+            position: relative;
         }
         .option-label:hover { background-color: #f5f5f5; }
         .option-label input[type="radio"] { margin-right: 15px; transform: scale(1.2); }
@@ -80,10 +82,28 @@
         .answered { background-color: #4CAF50; }
         .flagged { background-color: #FFC107; }
         .unanswered { background-color: #AAAAAA; }
-        .current {
-            background-color: #007bff;
-            border-color: #d9534f;
+        .current { background-color: #007bff; border-color: #d9534f; }
+        /* Review Mode Styles */
+        .review-correct { background-color: #28a745; }
+        .review-incorrect { background-color: #dc3545; }
+        .option-label.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .option-label.incorrect { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .option-label.correct::after, .option-label.incorrect::after {
+            position: absolute;
+            right: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
         }
+        .option-label.correct::after { content: '✔️'; }
+        .option-label.incorrect::after { content: '❌'; }
+        .explanation-box {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-left: 5px solid #004d99;
+            border-radius: 5px;
+        }
+        .explanation-box h5 { margin-top: 0; }
         .finish-btn {
             width: 100%;
             padding: 12px;
@@ -121,7 +141,7 @@
 <div class="exam-container">
     <header class="exam-header">
         <div class="exam-info">
-            <span class="exam-title">ADC Simulated Test - Full Mock Exam</span>
+            <span class="exam-title">ADC Simulated Test</span>
             <span class="question-number">Question 1 of 80</span>
         </div>
         <div class="timer-section">
@@ -134,6 +154,7 @@
         <div class="question-panel">
             <p class="question-text">Loading question...</p>
             <form class="options-form"></form>
+            <div class="explanation-box" style="display: none;"></div>
         </div>
         <aside class="status-panel">
             <h4>Question Navigation</h4>
@@ -151,105 +172,97 @@
 
 <script>
     const quizQuestions = [
-        // Oral Medicine & Pathology
-        { id: 1, text: "Q1: A 60-year-old male, a heavy smoker, presents with a persistent white patch on the floor of his mouth that cannot be wiped off. What is the most appropriate clinical term for this lesion?", options: ["Candidiasis", "Lichen Planus", "Leukoplakia", "Frictional Keratosis"] },
-        { id: 2, text: "Q2: A patient presents with multiple, small, painful ulcers on the non-keratinised oral mucosa that recur every few months. The most likely diagnosis is:", options: ["Herpes Simplex Virus 1", "Pemphigus Vulgaris", "Recurrent Aphthous Stomatitis (Minor)", "Erythema Multiforme"] },
-        { id: 3, text: "Q3: Histologically, the presence of Civatte bodies and a band-like lymphocytic infiltrate in the lamina propria is characteristic of which condition?", options: ["Pemphigoid", "Lichen Planus", "Leukoplakia", "Discoid Lupus Erythematosus"] },
-        { id: 4, text: "Q4: A well-demarcated, unilocular radiolucency is found surrounding the crown of an unerupted mandibular third molar. The most likely diagnosis is:", options: ["Ameloblastoma", "Odontogenic Keratocyst (OKC)", "Dentigerous Cyst", "Radicular Cyst"] },
-        { id: 5, text: "Q5: Burning mouth syndrome most commonly affects which patient demographic?", options: ["Adolescent males", "Post-menopausal females", "Young adult males", "Pre-pubertal children"] },
-        // Pharmacology
-        { id: 6, text: "Q6: According to Australian guidelines, which antibiotic is the standard prophylactic regimen for a non-penicillin-allergic adult patient at high risk of infective endocarditis?", options: ["500mg Amoxicillin", "600mg Clindamycin", "2g Amoxicillin", "1g Cephalexin"] },
-        { id: 7, text: "Q7: A patient taking warfarin for atrial fibrillation presents for a simple extraction. Their latest INR is 2.8. What is the most appropriate course of action?", options: ["Postpone treatment until INR is below 1.5", "Proceed with the extraction using local haemostatic measures", "Advise the patient to stop warfarin for 3 days", "Refer to a haematologist for bridging therapy"] },
-        { id: 8, text: "Q8: Which local anaesthetic agent has the highest risk of causing methaemoglobinaemia, especially in high doses?", options: ["Lidocaine", "Articaine", "Mepivacaine", "Prilocaine"] },
-        { id: 9, text: "Q9: Non-steroidal anti-inflammatory drugs (NSAIDs) like ibuprofen should be used with caution in patients taking which of the following medications due to an increased risk of renal toxicity?", options: ["Paracetamol", "Lithium", "Metformin", "Amoxicillin"] },
-        { id: 10, text: "Q10: What is the mechanism of action of benzodiazepines like diazepam when used for dental anxiety?", options: ["Enhancing the effect of GABA at the GABA-A receptor", "Blocking dopamine receptors", "Inhibiting serotonin reuptake", "Agonising opioid receptors"] },
-        // Restorative Dentistry
-        { id: 11, text: "Q11: What is the primary purpose of the 'ferrule effect' in the restoration of an endodontically treated tooth?", options: ["To improve the aesthetic outcome", "To provide a hermetic seal against microleakage", "To protect the remaining tooth structure from fracture", "To increase the retention of the core material"] },
-        { id: 12, text: "Q12: In a Class II composite restoration, what is the main advantage of using a sectional matrix system over a circumferential Tofflemire band?", options: ["Faster placement", "Better establishment of a tight proximal contact", "Less expensive", "Easier to use for deep subgingival margins"] },
-        { id: 13, text: "Q13: The 'C-Factor' (Configuration Factor) is highest in which type of cavity preparation, leading to higher polymerisation shrinkage stress?", options: ["Class IV", "Class V", "Class II", "Class I"] },
-        { id: 14, text: "Q14: When bonding a ceramic veneer, which is the most appropriate cement and surface treatment combination for lithium disilicate (e.g., e.max)?", options: ["RMGI cement; sandblasting", "Resin cement; hydrofluoric acid etch and silane", "Zinc Phosphate cement; no treatment needed", "GIC; phosphoric acid etch"] },
-        { id: 15, text: "Q15: What is the phenomenon where a cast gold onlay appears darker under the gingiva over time?", options: ["Corrosion", "Amalgam tattoo", "Galvanic shock", "Gingival recession"] },
-        // Periodontics
-        { id: 16, text: "Q16: According to the 2017 AAP/EFP classification, a patient with interdental CAL of 4mm, radiographic bone loss extending to the middle third of the root, and tooth loss of 3 teeth due to periodontitis would be classified as:", options: ["Stage I", "Stage II", "Stage III", "Stage IV"] },
-        { id: 17, text: "Q17: Which systemic condition has the strongest bidirectional relationship with chronic periodontitis?", options: ["Rheumatoid Arthritis", "Asthma", "Diabetes Mellitus", "Hypertension"] },
-        { id: 18, text: "Q18: The primary objective of scaling and root planing is to:", options: ["Remove all cementum from the root surface", "Create a glass-like smooth root surface", "Remove plaque, calculus, and endotoxins", "Stimulate the reattachment of the gingival cuff"] },
-        { id: 19, text: "Q19: Aggressive Periodontitis (now Grade C Molar-Incisor Pattern Periodontitis) is strongly associated with which specific pathogen?", options: ["Porphyromonas gingivalis", "Aggregatibacter actinomycetemcomitans", "Tannerella forsythia", "Prevotella intermedia"] },
-        { id: 20, text: "Q20: What is the term for the surgical procedure that aims to regenerate lost periodontal structures, including new bone, cementum, and periodontal ligament?", options: ["Gingivectomy", "Guided Tissue Regeneration (GTR)", "Apically positioned flap", "Free gingival graft"] },
-        // Paediatric Dentistry
-        { id: 21, text: "Q21: A 4-year-old child presents with a necrotic primary first molar with furcation radiolucency. What is the most appropriate treatment?", options: ["Pulpotomy", "Indirect pulp cap", "Pulpectomy", "Extraction"] },
-        { id: 22, text: "Q22: A 8-year-old child suffers a complicated crown fracture with pulp exposure of a permanent maxillary central incisor that occurred 1 hour ago. The tooth has an immature apex. The best treatment is:", options: ["Pulpectomy", "Apexification", "Partial Pulpotomy (Cvek pulpotomy)", "Direct Pulp Cap with GIC"] },
-        { id: 23, text: "Q23: What is the recommended concentration of fluoride in community water supplies in Australia for optimal caries prevention?", options: ["0.1 ppm", "0.7 ppm", "1.5 ppm", "2.0 ppm"] },
-        { id: 24, text: "Q24: The 'tell-show-do' technique is a form of:", options: ["Pharmacological behaviour management", "Positive reinforcement", "Communication and guidance", "Aversive conditioning"] },
-        { id: 25, text: "Q25: A space maintainer is most critical after the premature loss of which primary tooth?", options: ["Primary central incisor", "Primary canine", "Primary first molar", "Primary second molar"] },
-        // Endodontics
-        { id: 26, text: "Q26: A tooth that responds to cold testing with a sharp, lingering pain for over 30 seconds is likely diagnosed with:", options: ["Reversible Pulpitis", "Symptomatic Irreversible Pulpitis", "Pulp Necrosis", "Normal Pulp"] },
-        { id: 27, text: "Q27: What is the main purpose of sodium hypochlorite (NaOCl) as a root canal irrigant?", options: ["To remove the smear layer", "To dissolve organic tissue", "To chelate inorganic dentine", "To lubricate the files"] },
-        { id: 28, text: "Q28: 'Apexification' is a procedure indicated for:", options: ["A vital permanent tooth with an open apex", "A non-vital permanent tooth with an open apex", "A vital primary tooth", "A non-vital primary tooth"] },
-        { id: 29, text: "Q29: A periapical radiograph shows a 'J-shaped' or 'halo' radiolucency associated with a tooth. This is highly suggestive of:", options: ["Chronic apical periodontitis", "A vertical root fracture", "Condensing osteitis", "A lateral periodontal cyst"] },
-        { id: 30, text: "Q30: The file size number (e.g., 25, 30, 35) on a K-file corresponds to:", options: ["Its length in millimeters", "Its diameter at the tip in hundredths of a millimeter", "Its taper in degrees", "The number of flutes per millimeter"] },
-        // Oral Surgery & Radiology
-        { id: 31, text: "Q31: A patient experiences a dry socket (alveolar osteitis) three days after an extraction. The most appropriate immediate management is:", options: ["Prescribe systemic antibiotics", "Surgically debride and suture the socket", "Gently irrigate with saline and place an obtundent dressing", "Advise the patient it will resolve on its own"] },
-        { id: 32, text: "Q32: Which radiographic view is most appropriate for visualising the condylar head and neck for a suspected fracture?", options: ["Periapical", "OPG (Panoramic)", "Reverse Towne's view", "Lateral Cephalogram"] },
-        { id: 33, text: "Q33: The principle of 'ALARA' in dental radiography stands for:", options: ["As Low As Reasonably Achievable", "Always Limit All Radiation Access", "As Long As Radiographically Acceptable", "As Low As Regulations Allow"] },
-        { id: 34, text: "Q34: Oro-antral communication is a potential complication when extracting which teeth?", options: ["Mandibular molars", "Maxillary canines", "Maxillary premolars and molars", "Mandibular incisors"] },
-        { id: 35, text: "Q35: Bisphosphonate-related osteonecrosis of the jaw (BRONJ/MRONJ) is most commonly associated with:", options: ["Oral bisphosphonates for osteoporosis", "Topical steroid use", "Intravenous bisphosphonates for cancer therapy", "Long-term NSAID use"] },
-        // Dental Materials
-        { id: 36, text: "Q36: What is the primary advantage of Glass Ionomer Cement (GIC) as a restorative material?", options: ["Superior compressive strength", "Excellent wear resistance", "Chemical adhesion and fluoride release", "High polishability and aesthetics"] },
-        { id: 37, text: "Q37: The setting reaction of a traditional zinc phosphate cement is an:", options: ["Acid-base reaction that is endothermic", "Polymerisation reaction", "Acid-base reaction that is exothermic", "Chelation reaction"] },
-        { id: 38, text: "Q38: Polyvinyl siloxane (PVS) is a popular impression material. What is its main disadvantage?", options: ["Poor dimensional stability", "Hydrophobia (repels moisture)", "Low tear strength", "Unpleasant taste"] },
-        { id: 39, text: "Q39: In dental amalgam, which phase is most susceptible to corrosion and is associated with poorer clinical performance?", options: ["Gamma phase (Ag3Sn)", "Gamma-1 phase (Ag2Hg3)", "Gamma-2 phase (Sn7-8Hg)", "Epsilon phase (Cu3Sn)"] },
-        { id: 40, text: "Q40: The purpose of adding a silane coupling agent to the filler particles in composite resin is to:", options: ["Initiate the polymerisation reaction", "Improve the radiopacity", "Bond the filler particles to the resin matrix", "Adjust the viscosity of the material"] },
-        // Ethics, Law & Public Health (Australia)
-        { id: 41, text: "Q41: According to the Dental Board of Australia's Code of Conduct, what is the primary ethical obligation of a dental practitioner?", options: ["To protect the reputation of the profession", "To make healthcare accessible and affordable", "To put the interests and wellbeing of patients first", "To maintain comprehensive clinical records"] },
-        { id: 42, text: "Q42: A patient requests a copy of their dental records. Under Australian privacy law, the practitioner must:", options: ["Provide a summary but not the original records", "Refuse, as the records are property of the clinic", "Provide the patient with access or a copy in a timely manner", "Only provide the records if requested by a lawyer"] },
-        { id: 43, text: "Q43: Which of the following is considered a 'reviewable action' that must be reported to AHPRA under mandatory notification laws?", options: ["A colleague consistently running late", "Practising while intoxicated", "Disagreement over a treatment plan", "Charging higher-than-average fees"] },
-        { id: 44, text: "Q44: In Australia, advertising of regulated health services must not:", options: ["Mention the price of services", "Use testimonials or purported testimonials", "List the qualifications of the practitioner", "Show the address of the practice"] },
-        { id: 45, text: "Q45: The concept of 'informed consent' requires that the patient is informed of all of the following EXCEPT:", options: ["The nature of the proposed treatment", "The potential risks and benefits", "Alternative treatment options", "The practitioner's personal opinion of the patient"] },
-        // Mixed Topics - Round 2
-        { id: 46, text: "Q46: A radiograph shows a 'cotton wool' appearance of the bone in an elderly patient, along with hypercementosis and loss of lamina dura. This is characteristic of:", options: ["Fibrous Dysplasia", "Osteosarcoma", "Paget's Disease of Bone", "Cherubism"] },
-        { id: 47, text: "Q47: According to Australian infection control guidelines, how should critical instruments (those that penetrate soft tissue) be processed?", options: ["Disinfection with high-level chemical agents", "Cleaning and steam sterilisation", "Wiping with alcohol", "Ultrasonic cleaning only"] },
-        { id: 48, text: "Q48: What is the 'Tarnow rule' in implant dentistry?", options: ["It relates to the minimum bone height required above the mandibular canal", "It predicts the likelihood of papilla fill based on the distance from contact point to crestal bone", "It defines the ideal emergence profile for an anterior crown", "It specifies the torque required for implant placement"] },
-        { id: 49, text: "Q49: A patient complains of a 'clicking' sound in their jaw joint upon opening, which disappears on wider opening. This is a classic sign of:", options: ["Osteoarthritis of the TMJ", "Myofascial pain dysfunction syndrome", "Disc displacement with reduction", "Ankylosis of the TMJ"] },
-        { id: 50, text: "Q50: The 'Sandwich Technique' in restorative dentistry typically involves placing which two materials in a specific layered order?", options: ["Amalgam over composite", "GIC or RMGIC as a base/liner under a composite resin", "Composite over a flowable composite liner", "Ceramic over a resin base"] },
-        { id: 51, text: "Q51: A lesion that presents as a soft, bluish, dome-shaped swelling on the lower lip, which fluctuates in size, is most likely a:", options: ["Fibroma", "Haemangioma", "Mucocele", "Lipoma"] },
-        { id: 52, text: "Q52: An avulsed permanent tooth with an extra-oral dry time of 75 minutes should be managed by:", options: ["Immediate gentle replantation", "Soaking in fluoride before replanting", "Cleaning the root surface and initiating root canal treatment before replantation", "Discarding the tooth as prognosis is hopeless"] },
-        { id: 53, text: "Q53: Which nerve is most at risk of injury during the surgical extraction of a mandibular third molar?", options: ["Inferior alveolar nerve", "Mental nerve", "Buccal nerve", "Lingual nerve"] },
-        { id: 54, text: "Q54: The 'working length' in endodontics is ideally established at:", options: ["The radiographic apex", "0.5-1.0 mm short of the radiographic apex", "1.5-2.0 mm short of the radiographic apex", "The point where the patient first feels sensitivity"] },
-        { id: 55, text: "Q55: What is the primary cause of porosity in a heat-cured acrylic denture base?", options: ["Insufficient pressure during flasking", "Packing the resin in a doughy stage that is too soft", "A heating cycle that is too rapid (monomer boiling)", "Incorrect powder-to-liquid ratio"] },
-        { id: 56, text: "Q56: Stevens-Johnson Syndrome is a severe adverse reaction most commonly associated with which class of drugs?", options: ["Penicillins", "NSAIDs", "Sulphonamides", "Local anaesthetics"] },
-        { id: 57, text: "Q57: In complete denture fabrication, the primary purpose of a 'facebow transfer' is to:", options: ["Record the patient's centric relation", "Orient the maxillary cast to the articulator in relation to the hinge axis", "Determine the vertical dimension of occlusion", "Select the appropriate tooth mould"] },
-        { id: 58, text: "Q58: A 'step-back' technique in root canal preparation involves:", options: ["Using progressively smaller files to the apex", "Using progressively larger files to the apex", "Preparing the apical portion first, then flaring the coronal portion with successively larger files stepped back", "Preparing the coronal portion first before establishing apical patency"] },
-        { id: 59, text: "Q59: Which condition presents with a classic radiographic 'driven-snow' or 'sunburst' appearance?", options: ["Ameloblastoma", "Odontogenic Myxoma", "Calcifying Epithelial Odontogenic Tumour (Pindborg tumour)", "Osteosarcoma"] },
-        { id: 60, text: "Q60: According to the TGA, a 'Class I' medical device used in dentistry would be a:", options: ["Dental implant", "Composite resin", "Dental floss", "Dental X-ray unit"] },
-        { id: 61, text: "Q61: The 'acid-etch' technique for bonding composites to enamel primarily creates:", options: ["A chemical bond with hydroxyapatite", "Micromechanical retention via microporosities", "A hybrid layer of collagen and resin", "An ionic bond with enamel proteins"] },
-        { id: 62, text: "Q62: A 10-year-old patient has hypomineralised first permanent molars (MIH) with post-eruptive breakdown. What is the most suitable long-term provisional restoration?", options: ["Amalgam restoration", "Preformed metal (stainless steel) crown", "Composite resin restoration", "Glass ionomer cement restoration"] },
-        { id: 63, text: "Q63: The Turner Tooth phenomenon (enamel hypoplasia on a permanent tooth) is typically caused by:", options: ["Systemic illness during tooth development", "Trauma or periapical infection from the preceding primary tooth", "Excessive fluoride intake", "Genetic factors"] },
-        { id: 64, text: "Q64: The water-to-powder ratio has the most significant effect on which property of gypsum products?", options: ["Setting time", "Compressive strength and setting expansion", "Surface hardness only", "Colour and taste"] },
-        { id: 65, text: "Q65: Which of these is NOT a characteristic feature of Sjögren's Syndrome?", options: ["Xerostomia", "Keratoconjunctivitis sicca (dry eyes)", "Increased risk of lymphoma", "Increased salivary flow"] },
-        { id: 66, text: "Q66: A 'fremitus' test is used in dentistry to assess:", options: ["Tooth mobility during occlusal contact", "Cracks or fractures in a tooth", "The vitality of the pulp", "The health of the temporomandibular joint"] },
-        { id: 67, text: "Q67: The most common site for an intraoral squamous cell carcinoma is the:", options: ["Palate", "Buccal mucosa", "Gingiva", "Lateral border of the tongue and floor of mouth"] },
-        { id: 68, text: "Q68: What is the primary function of EDTA as a root canal irrigant?", options: ["To kill bacteria", "To dissolve necrotic tissue", "To remove the inorganic smear layer by chelation", "To act as a lubricant"] },
-        { id: 69, text: "Q69: In orthodontics, a 'Class II division 2' malocclusion is characterised by:", options: ["Proclined maxillary central incisors", "Retroclined maxillary central incisors", "An anterior crossbite", "A posterior crossbite"] },
-        { id: 70, text: "Q70: A dentist extracts the wrong tooth. This action falls under which category of professional misconduct?", options: ["Boundary violation", "Negligence", "Fraud", "Impaired practice"] },
-        { id: 71, text: "Q71: The 'ghost image' on a panoramic radiograph is:", options: ["A real image of an object located on the opposite side, projected higher up", "An artifact caused by patient movement", "An image of an object located outside the focal trough", "A double image of an object in the midline"] },
-        { id: 72, text: "Q72: What is the ideal crown-to-root ratio for a tooth to be considered as a suitable abutment for a fixed partial denture?", options: ["2:1", "1:1", "1:1.5", "1:2"] },
-        { id: 73, text: "Q73: The setting of alginate impression material is a:", options: ["Reversible hydrocolloid reaction", "Irreversible chemical reaction (gelation)", "Polymerisation reaction", "Acid-base reaction"] },
-        { id: 74, text: "Q74: The 'Angle of the mandible' is a common site for fractures because:", options: ["It has the thickest cortical bone", "It is an area of structural weakness where a third molar may be present", "It is protected by the masseter muscle", "It receives the least impact during trauma"] },
-        { id: 75, text: "Q75: A patient with poorly controlled Type 1 diabetes is at an increased risk for all of the following oral conditions EXCEPT:", options: ["Periodontitis", "Dental caries", "Oral candidiasis", "Enamel erosion"] },
-        { id: 76, text: "Q76: The Gow-Gates mandibular block anaesthetises which nerves?", options: ["Inferior alveolar and lingual nerves only", "Inferior alveolar, lingual, buccal, mylohyoid, and auriculotemporal nerves", "Mental and incisive nerves", "Buccal nerve only"] },
-        { id: 77, text: "Q77: The 'biologic width' refers to the combined height of the:", options: ["Gingival sulcus and epithelial attachment", "Junctional epithelium and connective tissue attachment", "Free gingiva and attached gingiva", "Cementum and alveolar bone"] },
-        { id: 78, text: "Q78: A patient presents with painful, bleeding gums, 'punched-out' interdental papillae, and a fetid odour. The most likely diagnosis is:", options: ["Chronic gingivitis", "Desquamative gingivitis", "Necrotising Ulcerative Gingivitis (NUG)", "Herpetic gingivostomatitis"] },
-        { id: 79, text: "Q79: Which dental cement forms a chemical bond to tooth structure via chelation of calcium ions?", options: ["Zinc Phosphate", "Polycarboxylate", "Resin cement", "Zinc Oxide Eugenol"] },
-        { id: 80, text: "Q80: Under the Dental Board of Australia's guidelines, how many hours of Continuing Professional Development (CPD) are required over a three-year cycle?", options: ["30 hours", "40 hours", "60 hours", "80 hours"] }
+        { id: 1, text: "Q1: A 60-year-old male, a heavy smoker, presents with a persistent white patch on the floor of his mouth that cannot be wiped off. What is the most appropriate clinical term for this lesion?", options: ["Candidiasis", "Lichen Planus", "Leukoplakia", "Frictional Keratosis"], correctAnswerIndex: 2, explanation: "Leukoplakia is a clinical term for a white patch that cannot be wiped off or diagnosed as any other specific condition. Given the patient's smoking history and location, it's considered a potentially malignant disorder." },
+        { id: 2, text: "Q2: A patient presents with multiple, small, painful ulcers on the non-keratinised oral mucosa that recur every few months. The most likely diagnosis is:", options: ["Herpes Simplex Virus 1", "Pemphigus Vulgaris", "Recurrent Aphthous Stomatitis (Minor)", "Erythema Multiforme"], correctAnswerIndex: 2, explanation: "Recurrent aphthous stomatitis (minor aphthae) classically presents as small, round ulcers on non-keratinised mucosa (like buccal mucosa or lips) and is recurrent in nature." },
+        { id: 3, text: "Q3: Histologically, the presence of Civatte bodies and a band-like lymphocytic infiltrate in the lamina propria is characteristic of which condition?", options: ["Pemphigoid", "Lichen Planus", "Leukoplakia", "Discoid Lupus Erythematosus"], correctAnswerIndex: 1, explanation: "The key histological features of Oral Lichen Planus are a dense, band-like infiltrate of T-lymphocytes and apoptotic keratinocytes known as Civatte or colloid bodies." },
+        { id: 4, text: "Q4: A well-demarcated, unilocular radiolucency is found surrounding the crown of an unerupted mandibular third molar. The most likely diagnosis is:", options: ["Ameloblastoma", "Odontogenic Keratocyst (OKC)", "Dentigerous Cyst", "Radicular Cyst"], correctAnswerIndex: 2, explanation: "A dentigerous cyst is an odontogenic cyst that originates from the reduced enamel epithelium and encloses the crown of an unerupted tooth, attaching at the cementoenamel junction." },
+        { id: 5, text: "Q5: Burning mouth syndrome most commonly affects which patient demographic?", options: ["Adolescent males", "Post-menopausal females", "Young adult males", "Pre-pubertal children"], correctAnswerIndex: 1, explanation: "Burning mouth syndrome has a strong predilection for middle-aged to elderly females, particularly in the post-menopausal period, suggesting a hormonal link." },
+        { id: 6, text: "Q6: According to Australian guidelines (Therapeutic Guidelines), which antibiotic is the standard prophylactic regimen for a non-penicillin-allergic adult patient at high risk of infective endocarditis?", options: ["500mg Amoxicillin", "600mg Clindamycin", "2g Amoxicillin", "1g Cephalexin"], correctAnswerIndex: 2, explanation: "The standard single-dose oral regimen for antibiotic prophylaxis against infective endocarditis in non-allergic adults is 2 grams of Amoxicillin, taken 30-60 minutes before the procedure." },
+        { id: 7, text: "Q7: A patient taking warfarin for atrial fibrillation presents for a simple extraction. Their latest INR is 2.8. What is the most appropriate course of action?", options: ["Postpone treatment until INR is below 1.5", "Proceed with the extraction using local haemostatic measures", "Advise the patient to stop warfarin for 3 days", "Refer to a haematologist for bridging therapy"], correctAnswerIndex: 1, explanation: "An INR up to 4.0 is generally considered safe for simple extractions, provided local haemostatic measures (like sutures, tranexamic acid mouthwash, haemostatic packing) are used. Stopping warfarin is not recommended without medical consultation." },
+        { id: 8, text: "Q8: Which local anaesthetic agent has the highest risk of causing methaemoglobinaemia, especially in high doses?", options: ["Lidocaine", "Articaine", "Mepivacaine", "Prilocaine"], correctAnswerIndex: 3, explanation: "Prilocaine's metabolite, o-toluidine, is responsible for oxidizing haemoglobin to methaemoglobin, which cannot carry oxygen. This risk is dose-dependent and higher than with other common dental anaesthetics." },
+        { id: 9, text: "Q9: Non-steroidal anti-inflammatory drugs (NSAIDs) like ibuprofen should be used with caution in patients taking which of the following medications due to an increased risk of renal toxicity and reduced clearance?", options: ["Paracetamol", "Lithium", "Metformin", "Amoxicillin"], correctAnswerIndex: 1, explanation: "NSAIDs can reduce renal clearance of lithium, leading to potentially toxic high levels of lithium in the blood. This is a significant drug interaction." },
+        { id: 10, text: "Q10: What is the mechanism of action of benzodiazepines like diazepam when used for dental anxiety?", options: ["Enhancing the effect of GABA at the GABA-A receptor", "Blocking dopamine receptors", "Inhibiting serotonin reuptake", "Agonising opioid receptors"], correctAnswerIndex: 0, explanation: "Benzodiazepines are positive allosteric modulators of the GABA-A receptor. They enhance the effect of the inhibitory neurotransmitter GABA, leading to sedation and anxiolysis." },
+        { id: 11, text: "Q11: What is the primary purpose of the 'ferrule effect' in the restoration of an endodontically treated tooth?", options: ["To improve the aesthetic outcome", "To provide a hermetic seal against microleakage", "To protect the remaining tooth structure from fracture", "To increase the retention of the core material"], correctAnswerIndex: 2, explanation: "The ferrule is a 360-degree band of sound tooth structure (ideally 1.5-2mm in height) coronal to the crown margin. It braces the tooth against functional forces, significantly reducing the risk of fracture." },
+        { id: 12, text: "Q12: In a Class II composite restoration, what is the main advantage of using a sectional matrix system over a circumferential Tofflemire band?", options: ["Faster placement", "Better establishment of a tight proximal contact", "Less expensive", "Easier to use for deep subgingival margins"], correctAnswerIndex: 1, explanation: "Sectional matrices are pre-contoured and, when used with a separating ring, actively push the adjacent teeth apart, resulting in a tighter, more anatomically correct proximal contact point upon removal." },
+        { id: 13, text: "Q13: The 'C-Factor' (Configuration Factor) is highest in which type of cavity preparation, leading to higher polymerisation shrinkage stress?", options: ["Class IV", "Class V", "Class II", "Class I"], correctAnswerIndex: 3, explanation: "C-Factor is the ratio of bonded to unbonded surfaces. A Class I 'box' has 5 bonded surfaces and 1 unbonded (occlusal), giving a high C-Factor of 5, which generates high stress during composite polymerisation." },
+        { id: 14, text: "Q14: When bonding a ceramic veneer, which is the most appropriate cement and surface treatment combination for lithium disilicate (e.g., e.max)?", options: ["RMGI cement; sandblasting", "Resin cement; hydrofluoric acid etch and silane", "Zinc Phosphate cement; no treatment needed", "GIC; phosphoric acid etch"], correctAnswerIndex: 1, explanation: "Lithium disilicate requires etching with hydrofluoric acid to create microporosities, followed by a silane coupling agent to chemically bond the ceramic to the resin cement for the strongest possible bond." },
+        { id: 15, text: "Q15: What is the phenomenon where a cast gold onlay appears darker under the gingiva over time?", options: ["Corrosion", "Amalgam tattoo", "Galvanic shock", "Gingival recession"], correctAnswerIndex: 0, explanation: "Although gold is noble, other metals in the alloy can corrode slightly over many years, and the metallic ions can stain the surrounding gingival tissue, a process sometimes called 'iatrogenic tattooing'." },
+        { id: 16, text: "Q16: According to the 2017 AAP/EFP classification, a patient with interdental CAL of 4mm, radiographic bone loss extending to the middle third of the root, and tooth loss of 3 teeth due to periodontitis would be classified as:", options: ["Stage I", "Stage II", "Stage III", "Stage IV"], correctAnswerIndex: 2, explanation: "Stage III periodontitis is characterized by interdental CAL ≥5 mm, bone loss extending to the middle or apical third of the root, and tooth loss of up to 4 teeth due to the condition." },
+        { id: 17, text: "Q17: Which systemic condition has the strongest bidirectional relationship with chronic periodontitis?", options: ["Rheumatoid Arthritis", "Asthma", "Diabetes Mellitus", "Hypertension"], correctAnswerIndex: 2, explanation: "The relationship between diabetes and periodontitis is well-established. Poorly controlled diabetes increases the risk and severity of periodontitis, and severe periodontitis can negatively impact glycaemic control." },
+        { id: 18, text: "Q18: The primary objective of scaling and root planing is to:", options: ["Remove all cementum from the root surface", "Create a glass-like smooth root surface", "Remove plaque, calculus, and endotoxins", "Stimulate the reattachment of the gingival cuff"], correctAnswerIndex: 2, explanation: "The goal of SRP is to create a biologically compatible root surface by removing the etiologic agents of periodontitis: plaque biofilm, calculus (which harbors plaque), and plaque-derived endotoxins." },
+        { id: 19, text: "Q19: Molar-Incisor Pattern Periodontitis (formerly Aggressive Periodontitis) is strongly associated with which specific pathogen?", options: ["Porphyromonas gingivalis", "Aggregatibacter actinomycetemcomitans", "Tannerella forsythia", "Prevotella intermedia"], correctAnswerIndex: 1, explanation: "Aggregatibacter actinomycetemcomitans (Aa) has been historically and strongly implicated in the aggressive, localized forms of periodontitis affecting young individuals." },
+        { id: 20, text: "Q20: What is the term for the surgical procedure that aims to regenerate lost periodontal structures, including new bone, cementum, and periodontal ligament?", options: ["Gingivectomy", "Guided Tissue Regeneration (GTR)", "Apically positioned flap", "Free gingival graft"], correctAnswerIndex: 1, explanation: "GTR uses a barrier membrane to exclude fast-growing epithelial and gingival connective tissue cells, allowing slower-growing periodontal ligament and bone cells to repopulate the defect and regenerate the periodontium." },
+        { id: 21, text: "Q21: A 4-year-old child presents with a necrotic primary first molar with furcation radiolucency. What is the most appropriate treatment?", options: ["Pulpotomy", "Indirect pulp cap", "Pulpectomy", "Extraction"], correctAnswerIndex: 3, explanation: "For a necrotic primary tooth with evidence of infection spreading to the furcation (bone loss), extraction is the most predictable treatment to remove the source of infection and prevent damage to the underlying permanent tooth bud." },
+        { id: 22, text: "Q22: A 8-year-old child suffers a complicated crown fracture with pulp exposure of a permanent maxillary central incisor that occurred 1 hour ago. The tooth has an immature apex. The best treatment is:", options: ["Pulpectomy", "Apexification", "Partial Pulpotomy (Cvek pulpotomy)", "Direct Pulp Cap with GIC"], correctAnswerIndex: 2, explanation: "For a small, recent traumatic exposure on a vital immature tooth, a Cvek pulpotomy (removal of 1-2mm of inflamed pulp tissue) with MTA is the treatment of choice to preserve pulp vitality and allow continued root development (apexogenesis)." },
+        { id: 23, text: "Q23: What is the recommended concentration of fluoride in community water supplies in Australia for optimal caries prevention?", options: ["0.1 ppm", "0.7 ppm", "1.5 ppm", "2.0 ppm"], correctAnswerIndex: 1, explanation: "The NHMRC recommends a target range of 0.6 to 1.1 ppm, with most Australian systems aiming for around 0.7 to 0.9 ppm, balancing caries prevention with minimizing the risk of dental fluorosis." },
+        { id: 24, text: "Q24: The 'tell-show-do' technique is a form of:", options: ["Pharmacological behaviour management", "Positive reinforcement", "Communication and guidance", "Aversive conditioning"], correctAnswerIndex: 2, explanation: "Tell-Show-Do is a classic communication technique used to familiarize a patient (especially a child) with a procedure. The dentist explains what will be done (tell), demonstrates it (show), and then performs it (do)." },
+        { id: 25, text: "Q25: A space maintainer is most critical after the premature loss of which primary tooth?", options: ["Primary central incisor", "Primary canine", "Primary first molar", "Primary second molar"], correctAnswerIndex: 3, explanation: "Loss of the primary second molar before the eruption of the permanent first molar is critical because the permanent molar will drift mesially, causing significant loss of arch length and potential impaction of the second premolar." },
+        { id: 26, text: "Q26: A tooth that responds to cold testing with a sharp, lingering pain for over 30 seconds is likely diagnosed with:", options: ["Reversible Pulpitis", "Symptomatic Irreversible Pulpitis", "Pulp Necrosis", "Normal Pulp"], correctAnswerIndex: 1, explanation: "The key diagnostic feature of symptomatic irreversible pulpitis is lingering thermal pain. The pulp is inflamed to a point where it cannot heal, even if the stimulus is removed." },
+        { id: 27, text: "Q27: What is the main purpose of sodium hypochlorite (NaOCl) as a root canal irrigant?", options: ["To remove the smear layer", "To dissolve organic tissue", "To chelate inorganic dentine", "To lubricate the files"], correctAnswerIndex: 1, explanation: "NaOCl is a powerful antimicrobial and its primary chemical property is the dissolution of organic material, including pulp tissue remnants and the organic component of the dentin smear layer." },
+        { id: 28, text: "Q28: 'Apexification' is a procedure indicated for:", options: ["A vital permanent tooth with an open apex", "A non-vital permanent tooth with an open apex", "A vital primary tooth", "A non-vital primary tooth"], correctAnswerIndex: 1, explanation: "Apexification is the method to induce a calcified barrier at the open apex of a non-vital (necrotic) immature permanent tooth to allow for subsequent root canal obturation." },
+        { id: 29, text: "Q29: A periapical radiograph shows a 'J-shaped' or 'halo' radiolucency associated with a tooth. This is highly suggestive of:", options: ["Chronic apical periodontitis", "A vertical root fracture", "Condensing osteitis", "A lateral periodontal cyst"], correctAnswerIndex: 1, explanation: "A vertical root fracture often allows bacteria to egress along the fracture line, creating a deep, narrow periodontal defect that combines with an apical lesion, forming a characteristic J-shaped or halo-like radiolucency." },
+        { id: 30, text: "Q30: The file size number (e.g., 25, 30, 35) on a K-file corresponds to:", options: ["Its length in millimeters", "Its diameter at the tip (D0) in hundredths of a millimeter", "Its taper in degrees", "The number of flutes per millimeter"], correctAnswerIndex: 1, explanation: "According to ISO standards, the number on an endodontic file represents its tip diameter in hundredths of a millimeter. For example, a size 25 file has a tip diameter of 0.25 mm." },
+        { id: 31, text: "Q31: A patient experiences a dry socket (alveolar osteitis) three days after an extraction. The most appropriate immediate management is:", options: ["Prescribe systemic antibiotics", "Surgically debride and suture the socket", "Gently irrigate with saline and place an obtundent dressing", "Advise the patient it will resolve on its own"], correctAnswerIndex: 2, explanation: "The goal is to manage the patient's pain. Gentle irrigation removes debris, and placing a palliative/obtundent dressing (like Alvogyl or a zinc oxide-eugenol paste) soothes the exposed bone and relieves symptoms." },
+        { id: 32, text: "Q32: Which radiographic view is most appropriate for visualising the condylar head and neck for a suspected fracture?", options: ["Periapical", "OPG (Panoramic)", "Reverse Towne's view", "Lateral Cephalogram"], correctAnswerIndex: 2, explanation: "The Reverse Towne's view is a specific extraoral projection that aims the beam from postero-superiorly, projecting the condylar heads and necks inferior to the petrous ridge of the temporal bone, providing a clear view without superimposition." },
+        { id: 33, text: "Q33: The principle of 'ALARA' in dental radiography stands for:", options: ["As Low As Reasonably Achievable", "Always Limit All Radiation Access", "As Long As Radiographically Acceptable", "As Low As Regulations Allow"], correctAnswerIndex: 0, explanation: "ALARA is a fundamental radiation safety principle that advocates using the minimum amount of radiation exposure necessary to obtain a diagnostically acceptable image." },
+        { id: 34, text: "Q34: Oro-antral communication is a potential complication when extracting which teeth?", options: ["Mandibular molars", "Maxillary canines", "Maxillary premolars and molars", "Mandibular incisors"], correctAnswerIndex: 2, explanation: "The roots of the maxillary premolars and particularly the molars are in close proximity to the floor of the maxillary sinus (antrum), making communication a risk during extraction." },
+        { id: 35, text: "Q35: Bisphosphonate-related osteonecrosis of the jaw (BRONJ/MRONJ) is most commonly associated with:", options: ["Oral bisphosphonates for osteoporosis", "Topical steroid use", "Intravenous bisphosphonates for cancer therapy", "Long-term NSAID use"], correctAnswerIndex: 2, explanation: "While oral bisphosphonates carry a risk, the incidence of MRONJ is significantly higher in patients receiving high-potency intravenous bisphosphonates as part of their cancer treatment regimen." },
+        { id: 36, text: "Q36: What is the primary advantage of Glass Ionomer Cement (GIC) as a restorative material?", options: ["Superior compressive strength", "Excellent wear resistance", "Chemical adhesion and fluoride release", "High polishability and aesthetics"], correctAnswerIndex: 2, explanation: "GIC is unique in its ability to chemically bond to enamel and dentin via an ion-exchange mechanism and its capacity to act as a slow-release fluoride reservoir, providing a caries-protective effect." },
+        { id: 37, text: "Q37: The setting reaction of a traditional zinc phosphate cement is an:", options: ["Acid-base reaction that is endothermic", "Polymerisation reaction", "Acid-base reaction that is exothermic", "Chelation reaction"], correctAnswerIndex: 2, explanation: "The reaction between the phosphoric acid liquid and the zinc oxide powder is a classic acid-base reaction that releases heat, which is why it is mixed over a large area of a cooled glass slab." },
+        { id: 38, text: "Q38: Polyvinyl siloxane (PVS) is a popular impression material. What is its main disadvantage?", options: ["Poor dimensional stability", "Hydrophobia (repels moisture)", "Low tear strength", "Unpleasant taste"], correctAnswerIndex: 1, explanation: "Although modern PVS materials have surfactants to improve performance, they are inherently hydrophobic. Excellent moisture control is required to capture accurate detail, as the material can be repelled by saliva and sulcular fluid." },
+        { id: 39, text: "Q39: In dental amalgam, which phase is most susceptible to corrosion and is associated with poorer clinical performance?", options: ["Gamma phase (Ag3Sn)", "Gamma-1 phase (Ag2Hg3)", "Gamma-2 phase (Sn7-8Hg)", "Epsilon phase (Cu3Sn)"], correctAnswerIndex: 2, explanation: "The Gamma-2 (tin-mercury) phase is the weakest and most corrosion-prone component of low-copper amalgams. High-copper amalgams are designed to eliminate this phase, leading to superior longevity." },
+        { id: 40, text: "Q40: The purpose of adding a silane coupling agent to the filler particles in composite resin is to:", options: ["Initiate the polymerisation reaction", "Improve the radiopacity", "Bond the filler particles to the resin matrix", "Adjust the viscosity of the material"], correctAnswerIndex: 2, explanation: "Silane acts as a bridge, chemically bonding the inorganic filler particles (like glass or quartz) to the organic resin matrix. This transfers stress from the weaker resin to the stronger filler, improving the material's physical properties." },
+        { id: 41, text: "Q41: According to the Dental Board of Australia's Code of Conduct, what is the primary ethical obligation of a dental practitioner?", options: ["To protect the reputation of the profession", "To make healthcare accessible and affordable", "To put the interests and wellbeing of patients first", "To maintain comprehensive clinical records"], correctAnswerIndex: 2, explanation: "Patient-centred care is the cornerstone of the Code of Conduct. While all other options are important professional duties, the primary duty is always to the patient's health and wellbeing." },
+        { id: 42, text: "Q42: A patient requests a copy of their dental records. Under Australian privacy law, the practitioner must:", options: ["Provide a summary but not the original records", "Refuse, as the records are property of the clinic", "Provide the patient with access or a copy in a timely manner", "Only provide the records if requested by a lawyer"], correctAnswerIndex: 2, explanation: "Under the Privacy Act, patients have a right to access their health information. The practitioner must provide a copy or allow inspection, usually within 30 days, although reasonable administrative costs can be charged." },
+        { id: 43, text: "Q43: Which of the following is considered a 'reviewable action' that must be reported to AHPRA under mandatory notification laws?", options: ["A colleague consistently running late", "Practising while intoxicated", "Disagreement over a treatment plan", "Charging higher-than-average fees"], correctAnswerIndex: 1, explanation: "Practising while under the influence of alcohol or drugs constitutes 'impairment' and is one of the key behaviours that requires a mandatory notification to AHPRA by fellow health practitioners." },
+        { id: 44, text: "Q44: In Australia, advertising of regulated health services must not:", options: ["Mention the price of services", "Use testimonials or purported testimonials", "List the qualifications of the practitioner", "Show the address of the practice"], correctAnswerIndex: 1, explanation: "The National Law explicitly prohibits the use of testimonials in advertising for regulated health services, as they can be misleading, create unreasonable expectations, and are not based on objective evidence." },
+        { id: 45, text: "Q45: The concept of 'informed consent' requires that the patient is informed of all of the following EXCEPT:", options: ["The nature of the proposed treatment", "The potential risks and benefits", "Alternative treatment options", "The practitioner's personal opinion of the patient"], correctAnswerIndex: 3, explanation: "Informed consent is about providing objective information for the patient to make an autonomous decision. This includes the procedure, risks, benefits, and alternatives. The practitioner's subjective opinion of the patient is irrelevant and unprofessional." },
+        { id: 46, text: "Q46: A radiograph shows a 'cotton wool' appearance of the bone in an elderly patient, along with hypercementosis and loss of lamina dura. This is characteristic of:", options: ["Fibrous Dysplasia", "Osteosarcoma", "Paget's Disease of Bone", "Cherubism"], correctAnswerIndex: 2, explanation: "Paget's Disease is a bone metabolism disorder. In its later stages, it presents with patchy, sclerotic bone formations that look like 'cotton wool', often accompanied by hypercementosis on the roots of teeth." },
+        { id: 47, text: "Q47: According to Australian infection control guidelines, how should critical instruments (those that penetrate sterile tissue or the vascular system) be processed?", options: ["Disinfection with high-level chemical agents", "Cleaning and steam sterilisation", "Wiping with alcohol", "Ultrasonic cleaning only"], correctAnswerIndex: 1, explanation: "Critical instruments carry the highest risk of infection transmission and must be sterilized, which is the complete elimination of all microbial life. Steam sterilisation (autoclaving) is the standard method." },
+        { id: 48, text: "Q48: What is the 'Tarnow rule' in implant dentistry?", options: ["It relates to the minimum bone height required above the mandibular canal", "It predicts the likelihood of papilla fill based on the distance from contact point to crestal bone", "It defines the ideal emergence profile for an anterior crown", "It specifies the torque required for implant placement"], correctAnswerIndex: 1, explanation: "Tarnow's 1992 study found that if the distance from the base of the contact point to the crest of interproximal bone is 5mm or less, the papilla will fill the embrasure space nearly 100% of the time." },
+        { id: 49, text: "Q49: A patient complains of a 'clicking' sound in their jaw joint upon opening, which disappears on wider opening. This is a classic sign of:", options: ["Osteoarthritis of the TMJ", "Myofascial pain dysfunction syndrome", "Disc displacement with reduction", "Ankylosis of the TMJ"], correctAnswerIndex: 2, explanation: "This describes the articular disc being anteriorly displaced in the closed position. The 'click' is the sound of the condyle moving back onto (recapturing) the disc during opening. It is 'with reduction' because the disc returns to its normal position." },
+        { id: 50, text: "Q50: The 'Sandwich Technique' in restorative dentistry typically involves placing which two materials in a specific layered order?", options: ["Amalgam over composite", "GIC or RMGIC as a base/liner under a composite resin", "Composite over a flowable composite liner", "Ceramic over a resin base"], correctAnswerIndex: 1, explanation: "The sandwich technique leverages the benefits of both materials: GIC/RMGIC is placed first to provide a chemical seal, fluoride release, and replace dentin, and then it is overlaid with composite resin for its superior strength, wear resistance, and aesthetics." },
+        { id: 51, text: "Q51: A lesion that presents as a soft, bluish, dome-shaped swelling on the lower lip, which fluctuates in size, is most likely a:", options: ["Fibroma", "Haemangioma", "Mucocele", "Lipoma"], correctAnswerIndex: 2, explanation: "A mucocele is a common lesion caused by the rupture of a minor salivary gland duct and spillage of mucus into the surrounding connective tissue. They are characteristically bluish, dome-shaped, and common on the lower lip." },
+        { id: 52, text: "Q52: An avulsed permanent tooth with an extra-oral dry time of 75 minutes should be managed by:", options: ["Immediate gentle replantation", "Soaking in fluoride before replanting", "Cleaning the root surface and initiating root canal treatment before replantation", "Discarding the tooth as prognosis is hopeless"], correctAnswerIndex: 2, explanation: "After more than 60 minutes of dry time, the periodontal ligament cells on the root surface are considered non-viable. The goal shifts from trying to achieve PDL healing to aiming for ankylosis and slowing resorption. The necrotic PDL is removed, and endodontic treatment is initiated to prevent infection-related resorption." },
+        { id: 53, text: "Q53: Which nerve is most at risk of injury during the surgical extraction of a mandibular third molar?", options: ["Inferior alveolar nerve", "Mental nerve", "Buccal nerve", "Lingual nerve"], correctAnswerIndex: 3, explanation: "While the IAN is also at risk within the bone, the lingual nerve courses in the soft tissue on the medial (lingual) aspect of the mandible. It can be easily damaged by incisions or instruments retracting the lingual flap, especially if not carefully protected." },
+        { id: 54, text: "Q54: The 'working length' in endodontics is ideally established at:", options: ["The radiographic apex", "0.5-1.0 mm short of the radiographic apex", "1.5-2.0 mm short of the radiographic apex", "The point where the patient first feels sensitivity"], correctAnswerIndex: 1, explanation: "The apical constriction, the narrowest part of the canal, is typically 0.5-1.0 mm from the radiographic apex. Terminating preparation and obturation at this point prevents extrusion of materials into the periapical tissues." },
+        { id: 55, text: "Q55: What is the primary cause of porosity in a heat-cured acrylic denture base?", options: ["Insufficient pressure during flasking", "Packing the resin in a doughy stage that is too soft", "A heating cycle that is too rapid (monomer boiling)", "Incorrect powder-to-liquid ratio"], correctAnswerIndex: 2, explanation: "If the temperature of the acrylic rises above the boiling point of the monomer (approx. 100.3°C) during processing, the monomer will vaporize, creating gaseous voids (porosity) within the thickest sections of the denture base." },
+        { id: 56, text: "Q56: Stevens-Johnson Syndrome is a severe adverse reaction most commonly associated with which class of drugs?", options: ["Penicillins", "NSAIDs", "Sulphonamides", "Local anaesthetics"], correctAnswerIndex: 2, explanation: "SJS/TEN is a severe mucocutaneous reaction. While many drugs can cause it, anticonvulsants, allopurinol, and sulphonamide antibiotics are among the most frequently implicated classes." },
+        { id: 57, text: "Q57: In complete denture fabrication, the primary purpose of a 'facebow transfer' is to:", options: ["Record the patient's centric relation", "Orient the maxillary cast to the articulator in relation to the hinge axis", "Determine the vertical dimension of occlusion", "Select the appropriate tooth mould"], correctAnswerIndex: 1, explanation: "The facebow records the spatial relationship of the patient's maxilla to their terminal hinge axis (or an arbitrary axis). This allows the maxillary cast to be mounted on the articulator in the same three-dimensional orientation, improving the accuracy of eccentric movements." },
+        { id: 58, text: "Q58: A 'step-back' technique in root canal preparation involves:", options: ["Using progressively smaller files to the apex", "Using progressively larger files to the apex", "Preparing the apical portion first, then flaring the coronal portion with successively larger files stepped back", "Preparing the coronal portion first before establishing apical patency"], correctAnswerIndex: 2, explanation: "The step-back technique involves preparing the apical part of the canal to the master apical file size, and then using progressively larger files at successively shorter lengths (stepping back) to create a continuous taper in the canal." },
+        { id: 59, text: "Q59: Which condition presents with a classic radiographic 'driven-snow' or 'sunburst' appearance?", options: ["Ameloblastoma", "Odontogenic Myxoma", "Calcifying Epithelial Odontogenic Tumour (Pindborg tumour)", "Osteosarcoma"], correctAnswerIndex: 2, explanation: "The CEOT (Pindborg tumour) often presents as a mixed radiolucent-radiopaque lesion. The radiopaque structures are Liesegang ring calcifications, which can coalesce to form a 'driven-snow' pattern." },
+        { id: 60, text: "Q60: According to the TGA, a 'Class I' medical device used in dentistry would be a:", options: ["Dental implant", "Composite resin", "Dental floss", "Dental X-ray unit"], correctAnswerIndex: 2, explanation: "Class I devices are low-risk. Dental floss, prophy paste, and examination gloves are examples. Composite resin is typically Class IIa, implants are Class IIb, and X-ray units are also higher classification." },
+        { id: 61, text: "Q61: The 'acid-etch' technique for bonding composites to enamel primarily creates:", options: ["A chemical bond with hydroxyapatite", "Micromechanical retention via microporosities", "A hybrid layer of collagen and resin", "An ionic bond with enamel proteins"], correctAnswerIndex: 1, explanation: "Phosphoric acid selectively dissolves the heads of enamel prisms, creating microscopic surface irregularities. The low-viscosity bonding resin flows into these microporosities and polymerizes, creating a strong micromechanical interlock." },
+        { id: 62, text: "Q62: A 10-year-old patient has hypomineralised first permanent molars (MIH) with post-eruptive breakdown. What is the most suitable long-term provisional restoration?", options: ["Amalgam restoration", "Preformed metal (stainless steel) crown", "Composite resin restoration", "Glass ionomer cement restoration"], correctAnswerIndex: 1, explanation: "MIH enamel is weak and prone to fracture, and bonding is unreliable. A stainless steel crown provides full coverage protection, preventing further breakdown and maintaining the tooth until a more definitive restoration can be placed in adulthood." },
+        { id: 63, text: "Q63: The Turner Tooth phenomenon (enamel hypoplasia on a permanent tooth) is typically caused by:", options: ["Systemic illness during tooth development", "Trauma or periapical infection from the preceding primary tooth", "Excessive fluoride intake", "Genetic factors"], correctAnswerIndex: 1, explanation: "Turner's hypoplasia is a localized enamel defect caused by an insult to the developing permanent tooth bud, most commonly from an infection (abscess) or trauma to the overlying primary tooth." },
+        { id: 64, text: "Q64: The water-to-powder ratio has the most significant effect on which property of gypsum products?", options: ["Setting time", "Compressive strength and setting expansion", "Surface hardness only", "Colour and taste"], correctAnswerIndex: 1, explanation: "Adding more water than recommended creates a weaker, more porous final product because the excess water leaves voids after evaporation. This significantly reduces compressive strength and alters the setting expansion." },
+        { id: 65, text: "Q65: Which of these is NOT a characteristic feature of Sjögren's Syndrome?", options: ["Xerostomia", "Keratoconjunctivitis sicca (dry eyes)", "Increased risk of lymphoma", "Increased salivary flow"], correctAnswerIndex: 3, explanation: "Sjögren's Syndrome is an autoimmune disease that attacks exocrine glands, primarily the salivary and lacrimal glands, leading to severe dryness (xerostomia and xerophthalmia), not increased salivary flow." },
+        { id: 66, text: "Q66: A 'fremitus' test is used in dentistry to assess:", options: ["Tooth mobility during occlusal contact", "Cracks or fractures in a tooth", "The vitality of the pulp", "The health of the temporomandibular joint"], correctAnswerIndex: 0, explanation: "Fremitus is the palpable or visible vibration of a tooth when the patient taps their teeth together in occlusion. It is an indicator of excessive occlusal forces on that tooth." },
+        { id: 67, text: "Q67: The most common site for an intraoral squamous cell carcinoma is the:", options: ["Palate", "Buccal mucosa", "Gingiva", "Lateral border of the tongue and floor of mouth"], correctAnswerIndex: 3, explanation: "The high-risk sites for oral cancer are the ventro-lateral tongue and the floor of the mouth due to their thin, non-keratinized epithelium and pooling of carcinogens." },
+        { id: 68, text: "Q68: What is the primary function of EDTA as a root canal irrigant?", options: ["To kill bacteria", "To dissolve necrotic tissue", "To remove the inorganic smear layer by chelation", "To act as a lubricant"], correctAnswerIndex: 2, explanation: "EDTA (Ethylenediaminetetraacetic acid) is a chelating agent. It binds with calcium ions in the hydroxyapatite of the smear layer and dentin, effectively removing the inorganic component of the smear layer." },
+        { id: 69, text: "Q69: In orthodontics, a 'Class II division 2' malocclusion is characterised by:", options: ["Proclined maxillary central incisors", "Retroclined maxillary central incisors", "An anterior crossbite", "A posterior crossbite"], correctAnswerIndex: 1, explanation: "The defining feature of a Class II division 2 malocclusion is a Class II molar relationship combined with retroclined or upright maxillary central incisors and often proclined lateral incisors." },
+        { id: 70, text: "Q70: A dentist extracts the wrong tooth. This action falls under which category of professional misconduct?", options: ["Boundary violation", "Negligence", "Fraud", "Impaired practice"], correctAnswerIndex: 1, explanation: "Wrong-site surgery, including extracting the wrong tooth, is a clear breach of the standard of care expected of a competent practitioner and is a classic example of professional negligence." },
+        { id: 71, text: "Q71: The 'ghost image' on a panoramic radiograph is:", options: ["A real image of an object located on the opposite side, projected higher up", "An artifact caused by patient movement", "An image of an object located outside the focal trough", "A double image of an object in the midline"], correctAnswerIndex: 0, explanation: "A ghost image is an artifact formed by a dense object (like an earring) that is located between the x-ray source and the center of rotation. It appears on the opposite side, is blurred, magnified, and projected superiorly." },
+        { id: 72, text: "Q72: What is the ideal minimum crown-to-root ratio for a tooth to be considered as a suitable abutment for a fixed partial denture?", options: ["2:1 (Crown:Root)", "1:1", "1:1.5", "1:2"], correctAnswerIndex: 2, explanation: "An ideal crown-to-root ratio is 1:2, meaning the root is twice as long as the crown. The minimum acceptable ratio for a FPD abutment is generally considered to be 1:1, but 1:1.5 provides better support and prognosis." },
+        { id: 73, text: "Q73: The setting of alginate impression material is a:", options: ["Reversible hydrocolloid reaction", "Irreversible chemical reaction (gelation)", "Polymerisation reaction", "Acid-base reaction"], correctAnswerIndex: 1, explanation: "Alginate is an irreversible hydrocolloid. The sodium alginate reacts with calcium sulfate to form an insoluble calcium alginate gel. This chemical reaction cannot be reversed by heating." },
+        { id: 74, text: "Q74: The 'Angle of the mandible' is a common site for fractures because:", options: ["It has the thickest cortical bone", "It is an area of structural weakness where a third molar may be present", "It is protected by the masseter muscle", "It receives the least impact during trauma"], correctAnswerIndex: 1, explanation: "The angle of the mandible represents a transition zone in the bone's cross-sectional area and is often weakened by the presence of an impacted or erupted third molar, making it a common site for fractures." },
+        { id: 75, text: "Q75: A patient with poorly controlled Type 1 diabetes is at an increased risk for all of the following oral conditions EXCEPT:", options: ["Periodontitis", "Dental caries", "Oral candidiasis", "Enamel erosion"], correctAnswerIndex: 3, explanation: "While diabetes can lead to xerostomia (increasing caries risk), impaired healing, and increased risk of infections like candidiasis and periodontitis, it does not directly cause enamel erosion, which is typically due to chemical dissolution from acids (e.g., GERD, diet)." },
+        { id: 76, text: "Q76: The Gow-Gates mandibular block anaesthetises which nerves?", options: ["Inferior alveolar and lingual nerves only", "Inferior alveolar, lingual, buccal, mylohyoid, and auriculotemporal nerves", "Mental and incisive nerves", "Buccal nerve only"], correctAnswerIndex: 1, explanation: "The Gow-Gates is a true mandibular nerve block, depositing anaesthetic high up near the neck of the condyle before the nerve branches. This reliably anaesthetises the IAN, lingual, long buccal, mylohyoid, and auriculotemporal nerves with a single injection." },
+        { id: 77, text: "Q77: The 'biologic width' refers to the combined height of the:", options: ["Gingival sulcus and epithelial attachment", "Junctional epithelium and connective tissue attachment", "Free gingiva and attached gingiva", "Cementum and alveolar bone"], correctAnswerIndex: 1, explanation: "The biologic width is the dimension of the soft tissue attached to the tooth coronal to the crest of the alveolar bone. It is composed of the junctional epithelium and the supra-crestal connective tissue attachment." },
+        { id: 78, text: "Q78: A patient presents with painful, bleeding gums, 'punched-out' interdental papillae, and a fetid odour. The most likely diagnosis is:", options: ["Chronic gingivitis", "Desquamative gingivitis", "Necrotising Ulcerative Gingivitis (NUG)", "Herpetic gingivostomatitis"], correctAnswerIndex: 2, explanation: "These are the pathognomonic clinical signs of NUG: necrosis and ulceration leading to 'punched-out' papillae, severe pain, spontaneous bleeding, and a distinct malodour." },
+        { id: 79, text: "Q79: Which dental cement forms a chemical bond to tooth structure via chelation of calcium ions?", options: ["Zinc Phosphate", "Polycarboxylate", "Resin cement", "Zinc Oxide Eugenol"], correctAnswerIndex: 1, explanation: "Glass ionomer and polycarboxylate cements are the two main classes that chemically adhere to tooth structure. The polyacrylic acid in the liquid chelates with calcium ions in the enamel and dentin to form an ionic bond." },
+        { id: 80, text: "Q80: Under the Dental Board of Australia's guidelines, how many hours of Continuing Professional Development (CPD) are required over a three-year cycle?", options: ["30 hours", "40 hours", "60 hours", "80 hours"], correctAnswerIndex: 2, explanation: "Registered dentists in Australia are required to complete a minimum of 60 hours of CPD activities over a three-year cycle to maintain their registration." }
     ];
 
     const userState = quizQuestions.map(q => ({
-        status: 'unanswered', // can be 'unanswered', 'answered', 'flagged'
+        status: 'unanswered',
         selectedAnswer: null
     }));
 
     let currentQuestionIndex = 0;
     const totalQuestions = quizQuestions.length;
+    let isExamFinished = false;
+    let timerInterval;
 
     function renderNavigation() {
         const grid = document.querySelector('.question-grid');
@@ -259,8 +272,14 @@
             btn.textContent = index + 1;
             btn.className = 'q-btn';
             
-            btn.classList.add(state.status);
-
+            if (isExamFinished) {
+                const question = quizQuestions[index];
+                const isCorrect = state.selectedAnswer === question.correctAnswerIndex;
+                btn.classList.add(state.selectedAnswer !== null && isCorrect ? 'review-correct' : 'review-incorrect');
+            } else {
+                btn.classList.add(state.status);
+            }
+            
             if (index === currentQuestionIndex) {
                 btn.classList.add('current');
             }
@@ -276,6 +295,7 @@
     function loadQuestion(index) {
         const question = quizQuestions[index];
         const state = userState[index];
+        const explanationBox = document.querySelector('.explanation-box');
         
         document.querySelector('.question-number').textContent = `Question ${question.id} of ${totalQuestions}`;
         document.querySelector('.question-panel .question-text').textContent = question.text;
@@ -286,23 +306,47 @@
         question.options.forEach((optionText, i) => {
             const letter = String.fromCharCode(65 + i);
             const isChecked = state.selectedAnswer === i;
-            const optionHTML = `
-                <label class="option-label">
-                    <input type="radio" name="q-answer" value="${i}" ${isChecked ? 'checked' : ''}>
-                    ${letter}) ${optionText}
-                </label>
-            `;
-            optionsForm.insertAdjacentHTML('beforeend', optionHTML);
+            const optionLabel = document.createElement('label');
+            optionLabel.className = 'option-label';
+            
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.name = 'q-answer';
+            radioInput.value = i;
+            radioInput.checked = isChecked;
+            radioInput.disabled = isExamFinished;
+
+            optionLabel.appendChild(radioInput);
+            optionLabel.appendChild(document.createTextNode(` ${letter}) ${optionText}`));
+            
+            if (isExamFinished) {
+                const isCorrectAnswer = i === question.correctAnswerIndex;
+                const wasSelected = state.selectedAnswer === i;
+
+                if (isCorrectAnswer) {
+                    optionLabel.classList.add('correct');
+                } else if (wasSelected && !isCorrectAnswer) {
+                    optionLabel.classList.add('incorrect');
+                }
+            }
+            
+            optionsForm.appendChild(optionLabel);
         });
 
-        optionsForm.addEventListener('change', (e) => {
-            const selectedIndex = parseInt(e.target.value, 10);
-            userState[currentQuestionIndex].selectedAnswer = selectedIndex;
-            if (userState[currentQuestionIndex].status !== 'flagged') {
-                userState[currentQuestionIndex].status = 'answered';
-            }
-            renderNavigation();
-        });
+        if (!isExamFinished) {
+            optionsForm.addEventListener('change', (e) => {
+                const selectedIndex = parseInt(e.target.value, 10);
+                userState[currentQuestionIndex].selectedAnswer = selectedIndex;
+                if (userState[currentQuestionIndex].status !== 'flagged') {
+                    userState[currentQuestionIndex].status = 'answered';
+                }
+                renderNavigation();
+            });
+            explanationBox.style.display = 'none';
+        } else {
+            explanationBox.innerHTML = `<h5>Explanation</h5><p>${question.explanation}</p>`;
+            explanationBox.style.display = 'block';
+        }
 
         document.querySelector('.nav-btn.prev').disabled = (index === 0);
         document.querySelector('.nav-btn.next').disabled = (index === totalQuestions - 1);
@@ -312,10 +356,11 @@
     
     function startTimer(duration, display) {
         let timer = duration;
-        const intervalId = setInterval(() => {
+        timerInterval = setInterval(() => {
             if (timer < 0) {
-                 clearInterval(intervalId);
-                 return;
+                clearInterval(timerInterval);
+                finishExam();
+                return;
             }
             const hours = String(Math.floor(timer / 3600)).padStart(2, '0');
             const minutes = String(Math.floor((timer % 3600) / 60)).padStart(2, '0');
@@ -323,6 +368,32 @@
             display.textContent = `${hours}:${minutes}:${seconds}`;
             timer--;
         }, 1000);
+    }
+
+    function finishExam() {
+        if (isExamFinished) return; // Prevent multiple finishes
+        isExamFinished = true;
+        clearInterval(timerInterval);
+
+        let correctCount = 0;
+        userState.forEach((state, index) => {
+            if (state.selectedAnswer === quizQuestions[index].correctAnswerIndex) {
+                correctCount++;
+            }
+        });
+
+        const score = ((correctCount / totalQuestions) * 100).toFixed(2);
+        
+        document.querySelector('.exam-title').textContent = `Exam Review - Score: ${correctCount} / ${totalQuestions} (${score}%)`;
+        document.querySelector('.timer-section').style.display = 'none';
+        document.querySelector('.flag-btn').style.display = 'none';
+        
+        const finishBtn = document.querySelector('.finish-btn');
+        finishBtn.textContent = "Restart Exam";
+        finishBtn.style.backgroundColor = '#5cb85c';
+        finishBtn.onclick = () => window.location.reload();
+
+        loadQuestion(currentQuestionIndex); // Reload current question in review mode
     }
 
     window.onload = function () {
@@ -354,7 +425,7 @@
 
         document.querySelector('.finish-btn').addEventListener('click', () => {
              if (confirm("Are you sure you want to end the exam?")) {
-                alert("Exam submission logic would run here. In this simulation, the exam will now end.");
+                finishExam();
              }
         });
         
