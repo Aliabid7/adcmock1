@@ -1,270 +1,97 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADC Style Mock Exam (Single File)</title>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0; /* Light grey background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .exam-container {
-            width: 90%;
-            max-width: 1200px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        /* --- Header Styling (Top Bar) --- */
-        .exam-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background-color: #004d99; /* ADC-like navy blue */
-            color: white;
-            border-bottom: 3px solid #ffcc00; /* Gold accent */
-        }
-
-        .exam-title {
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-
-        .timer-section {
-            font-size: 1.2em;
-        }
-
-        .timer-display {
-            font-weight: bold;
-            color: #ffcc00; /* Gold for visibility */
-            margin-left: 10px;
-        }
-
-        /* --- Main Content Layout --- */
-        .exam-main {
-            display: flex;
-            min-height: 600px; /* Ensure content area is substantial */
-        }
-
-        .question-panel {
-            flex-grow: 1;
-            padding: 30px;
-            border-right: 1px solid #ddd;
-        }
-
-        .question-text {
-            font-size: 1.2em;
-            font-weight: 500;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .options-form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .option-label {
-            display: block;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .option-label:hover {
-            background-color: #f5f5f5;
-        }
-
-        .option-label input[type="radio"] {
-            margin-right: 15px;
-            transform: scale(1.2); /* Make radio buttons a bit bigger */
-        }
-
-
-        /* --- Status Panel (Right Sidebar) --- */
-        .status-panel {
-            width: 250px;
-            padding: 20px;
-            background-color: #f7f7f7;
-            text-align: center;
-        }
-
-        .status-panel h4 {
-            color: #004d99;
-            margin-top: 0;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .question-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .q-btn {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
-
-        /* ADC-style color coding for question status */
-        .answered { background-color: #4CAF50; /* Green */ }
-        .flagged { background-color: #FFCC00; /* Gold/Yellow */ }
-        .unanswered { background-color: #AAAAAA; /* Grey */ }
-        .current { 
-            background-color: #007bff; /* Blue */ 
-            border: 3px solid red; /* Highlight current question */
-            transform: scale(1.05);
-        }
-
-        .finish-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #d9534f; /* Red for final action */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-
-        /* --- Footer Styling (Bottom Bar) --- */
-        .exam-footer {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 20px;
-            background-color: #e9e9e9;
-            border-top: 1px solid #ddd;
-        }
-
-        .nav-btn, .flag-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .nav-btn.next {
-            background-color: #007bff; /* Blue */
-            color: white;
-        }
-
-        .nav-btn.prev {
-            background-color: #6c757d; /* Grey */
-            color: white;
-        }
-
-        .flag-btn {
-            background-color: #f0ad4e; /* Orange/Gold */
-            color: #333;
-        }
-
-        /* Disabled button style */
-        .nav-btn[disabled] {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-
-<div class="exam-container">
-    
-    <header class="exam-header">
-        <div class="exam-info">
-            <span class="exam-title">ADC Simulated Test - Part 1/2</span>
-            <span class="question-number">Question **1** of **100**</span>
-        </div>
-        <div class="timer-section">
-            <label for="time-remaining">Time Remaining:</label>
-            <span id="time-remaining" class="timer-display">**03:00:00**</span> </div>
-    </header>
-    
-    <main class="exam-main">
-        
-        <div class="question-panel">
-            <p class="question-text">
-                **Q1:** A 35-year-old patient presents with a localised, well-demarcated area of gingival enlargement on the buccal aspect of the maxillary right first molar. The lesion is firm, pale pink, and has been present for 6 months. What is the most likely diagnosis?
-            </p>
-            <form class="options-form">
-                <label class="option-label">
-                    <input type="radio" name="q1-answer" value="a">
-                    A) Chronic hyperplastic pulpitis
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="q1-answer" value="b">
-                    B) Pyogenic granuloma
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="q1-answer" value="c">
-                    C) Peripheral ossifying fibroma
-                </label>
-                <label class="option-label">
-                    <input type="radio" name="q1-answer" value="d">
-                    D) Recurrent aphthous stomatitis
-                </label>
-            </form>
-
-            <hr style="margin-top: 30px; border-top: 1px solid #ddd;">
-            <p style="font-size: 0.9em; color: #666;">
-                *Note: This is a placeholder question. Actual ADC content is confidential.*
-            </p>
-        </div>
-        
-        <aside class="status-panel">
-            <h4>Question Navigation</h4>
-            <div class="question-grid">
-                <button class="q-btn answered">1</button>
-                <button class="q-btn current">2</button>
-                <button class="q-btn flagged">3</button>
-                <button class="q-btn unanswered">4</button>
-                <button class="q-btn unanswered">5</button>
-                <button class="q-btn unanswered">6</button>
-                <button class="q-btn unanswered">7</button>
-                <button class="q-btn unanswered">8</button>
-                <button class="q-btn unanswered">9</button>
-                <button class="q-btn unanswered">10</button>
-                </div>
-            <button class="finish-btn">End Exam</button>
-        </aside>
-        
-    </main>
-    
-    <footer class="exam-footer">
-        <button class="nav-btn prev" disabled>← Previous</button>
-        <button class="flag-btn">🚩 Flag for Review</button>
-        <button class="nav-btn next">Next →</button>
-    </footer>
-    
-</div>
-
 <script>
+    // --- 1. Question Data Array ---
+    const quizQuestions = [
+        {
+            id: 1,
+            text: "Q1: A 35-year-old patient presents with a localised, well-demarcated area of gingival enlargement on the buccal aspect of the maxillary right first molar. The lesion is firm, pale pink, and has been present for 6 months. What is the most likely diagnosis?",
+            options: [
+                "A) Chronic hyperplastic pulpitis",
+                "B) Pyogenic granuloma",
+                "C) Peripheral ossifying fibroma (Single Best Answer)",
+                "D) Recurrent aphthous stomatitis"
+            ],
+            // In a real app, you'd track the correct answer here.
+        },
+        {
+            id: 2,
+            text: "Q2: Which of the following is the preferred local anaesthetic for a patient with a documented history of methemoglobinemia when extensive dental work is required?",
+            options: [
+                "A) Prilocaine",
+                "B) Lidocaine",
+                "C) Articaine",
+                "D) Benzocaine (Avoided in Methemoglobinemia)",
+            ],
+        },
+        {
+            id: 3,
+            text: "Q3: In paediatric dentistry, what is the recommended management for an enamel-dentin fracture of a permanent incisor with a positive pulpal sensitivity test and no radiographic sign of pulp exposure?",
+            options: [
+                "A) Direct pulp cap with MTA",
+                "B) Apexification procedure",
+                "C) Placement of a protective layer (e.g., glass ionomer) and permanent restoration (Standard Treatment)",
+                "D) Pulpotomy with formocresol",
+            ],
+        }
+        // Add more questions here to expand the mock test.
+    ];
+
+    let currentQuestionIndex = 0; // Starts at 0 for the first question
+    const totalQuestions = quizQuestions.length;
+
+    // --- 2. Core Functions ---
+
+    function loadQuestion(index) {
+        if (index < 0 || index >= totalQuestions) return;
+
+        const question = quizQuestions[index];
+        const questionPanel = document.querySelector('.question-panel');
+        
+        // Update Question Number Header
+        document.querySelector('.question-number').textContent = `Question ${question.id} of ${totalQuestions}`;
+
+        // Update Question Text
+        questionPanel.querySelector('.question-text').textContent = question.text;
+
+        // Update Options
+        const optionsForm = questionPanel.querySelector('.options-form');
+        optionsForm.innerHTML = ''; // Clear previous options
+
+        question.options.forEach((optionText, i) => {
+            const letter = String.fromCharCode(65 + i); // 65 is 'A'
+            const optionHTML = `
+                <label class="option-label">
+                    <input type="radio" name="q${question.id}-answer" value="${letter.toLowerCase()}">
+                    ${optionText}
+                </label>
+            `;
+            optionsForm.innerHTML += optionHTML;
+        });
+
+        // Update Navigation Button States
+        document.querySelector('.nav-btn.prev').disabled = (index === 0);
+        document.querySelector('.nav-btn.next').disabled = (index === totalQuestions - 1);
+        
+        // Optional: Update the 'current' button status in the sidebar 
+        // (This would require more complex status panel logic, but is good practice)
+    }
+
+    function handleNext() {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            currentQuestionIndex++;
+            loadQuestion(currentQuestionIndex);
+            window.scrollTo(0, 0); // Scroll to top for new question
+        }
+    }
+
+    function handlePrevious() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            loadQuestion(currentQuestionIndex);
+            window.scrollTo(0, 0); // Scroll to top for new question
+        }
+    }
+
+    // --- 3. Timer Function (Keep this the same) ---
     function startTimer(duration, display) {
         let timer = duration, hours, minutes, seconds;
         
@@ -280,32 +107,30 @@
             display.textContent = hours + ":" + minutes + ":" + seconds;
 
             if (--timer < 0) {
-                timer = 0; // Stop at 0
+                timer = 0;
                 display.textContent = "TIME UP";
-                clearInterval(intervalId); // Stop the countdown
+                clearInterval(intervalId);
                 alert("Time's up! The exam has automatically ended.");
-                // Add logic for automatic submission here
             }
         }, 1000);
     }
 
-    // Typical ADC Written Exam Block A or B: 3 hours = 10800 seconds
+    // --- 4. Initialization (Runs when page loads) ---
     window.onload = function () {
-        // Start time set to 3 hours (180 minutes)
+        // Start Timer (3 hours)
         let threeHours = 60 * 60 * 3; 
         let display = document.querySelector('#time-remaining');
         startTimer(threeHours, display);
-    };
-    
-    // Placeholder navigation logic (you would expand this in a real app)
-    document.querySelector('.nav-btn.next').onclick = () => {
-        alert("Moving to the next question. In a real app, this would load Q2 content.");
-    };
 
-    document.querySelector('.flag-btn').onclick = () => {
-        alert("Question flagged for review!");
-        // In a real app, you would change the current status button to the 'flagged' class.
+        // Attach event listeners to navigation buttons
+        document.querySelector('.nav-btn.next').addEventListener('click', handleNext);
+        document.querySelector('.nav-btn.prev').addEventListener('click', handlePrevious);
+        
+        document.querySelector('.flag-btn').addEventListener('click', () => {
+             alert(`Question ${currentQuestionIndex + 1} flagged for review!`);
+        });
+
+        // Load the first question
+        loadQuestion(currentQuestionIndex);
     };
 </script>
-</body>
-</html>
